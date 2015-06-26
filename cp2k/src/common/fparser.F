@@ -59,13 +59,14 @@ MODULE fparser
                                                          cAsin    = 19,         &
                                                          cAcos    = 20,         &
                                                          cAtan    = 21,         &
-                                                         VarBegin = 22
+                                                         cErf     = 22,         &
+                                                         VarBegin = 23
   CHARACTER (LEN=1), DIMENSION(cAdd:cPow),  PARAMETER :: Ops      = (/ '+',     &
                                                                        '-',     &
                                                                        '*',     &
                                                                        '/',     &
                                                                        '^' /)
-  CHARACTER (LEN=5), DIMENSION(cAbs:cAtan), PARAMETER :: Funcs    = (/ 'abs  ', &
+  CHARACTER (LEN=5), DIMENSION(cAbs:cErf), PARAMETER :: Funcs    = (/ 'abs  ', &
                                                                        'exp  ', &
                                                                        'log10', &
                                                                        'log  ', &
@@ -78,7 +79,8 @@ MODULE fparser
                                                                        'tan  ', &
                                                                        'asin ', &
                                                                        'acos ', &
-                                                                       'atan ' /)
+                                                                       'atan ', &
+                                                                       'erf  '/)
 ! *****************************************************************************
   TYPE tComp
      INTEGER(is), DIMENSION(:), POINTER :: ByteCode
@@ -262,6 +264,7 @@ CONTAINS
                       EvalErrType=4; res=zero; RETURN; ENDIF
                       Comp(i)%Stack(SP)=ACOS(Comp(i)%Stack(SP))
        CASE  (cAtan); Comp(i)%Stack(SP)=ATAN(Comp(i)%Stack(SP))
+       CASE   (cErf); Comp(i)%Stack(SP)=ERF(Comp(i)%Stack(SP))
        CASE  DEFAULT; SP=SP+1; Comp(i)%Stack(SP)=Val(Comp(i)%ByteCode(IP)-VarBegin+1)
        END SELECT
     END DO
@@ -466,7 +469,7 @@ CONTAINS
 !----- -------- --------- --------- --------- --------- --------- --------- -------
 
     n = 0
-    DO j=cAbs,cAtan                                          ! Check all math functions
+    DO j=cAbs,cErf                                           ! Check all math functions
        k = MIN(LEN_TRIM(Funcs(j)), LEN(str))
        CALL LowCase (str(1:k), fun)
        IF (fun == Funcs(j)) THEN                             ! Compare lower case letters
