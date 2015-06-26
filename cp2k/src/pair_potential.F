@@ -442,7 +442,11 @@ CONTAINS
 CPSourceFileRef,&
                only_ionode=.TRUE.)
        END IF
-       IF (diffmax > eps_spline ) THEN
+!FU| original line that could lead to trouble
+!       IF (diffmax > eps_spline ) THEN
+!FU|
+       IF (ABS(diffmax) > eps_spline ) THEN
+!FU|
           npoints   = CEILING(1.2_dp*REAL(npoints,KIND=dp))
        ELSE
           EXIT
