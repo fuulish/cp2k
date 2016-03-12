@@ -36,7 +36,7 @@ MODULE reftraj_types
      INTEGER                                  :: first_snapshot
      INTEGER                                  :: last_snapshot
      INTEGER                                  :: stride
-     LOGICAL                                  :: eval_ef
+     LOGICAL                                  :: eval_ef, eval_e_only, calc_forces
      LOGICAL                                  :: variable_volume
      LOGICAL                                  :: msd
      TYPE(cp_parser_type), POINTER            :: traj_parser
@@ -117,6 +117,13 @@ CONTAINS
     CALL section_vals_val_get(reftraj_section,"LAST_SNAPSHOT",i_val=reftraj%info%last_snapshot)
     CALL section_vals_val_get(reftraj_section,"STRIDE",i_val=reftraj%info%stride)
     CALL section_vals_val_get(reftraj_section,"EVAL_ENERGY_FORCES",l_val=reftraj%info%eval_ef)
+    CALL section_vals_val_get(reftraj_section,"EVAL_ENERGY_ONLY",l_val=reftraj%info%eval_e_only)
+
+    IF (reftraj%info%eval_e_only) THEN
+        reftraj%info%calc_forces = .FALSE.
+    ELSE
+        reftraj%info%calc_forces = .TRUE.
+    END IF
 
     CALL section_vals_val_get(reftraj_section,"MSD%_SECTION_PARAMETERS_",&
             l_val=reftraj%info%msd)

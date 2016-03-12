@@ -1672,7 +1672,7 @@ CONTAINS
     ! Compute energy and forces
     ![NB] let reftraj work with force mixing which does not have consistent energies and forces
     CALL force_env_calc_energy_force(force_env,eval_energy_forces=reftraj_env%info%eval_EF,&
-         require_consistent_energy_force=.FALSE.)
+         require_consistent_energy_force=.FALSE.,calc_force=reftraj_env%info%calc_forces)
 
     ! Metadynamics
     CALL metadyn_integrator(force_env, trj_itimes)
