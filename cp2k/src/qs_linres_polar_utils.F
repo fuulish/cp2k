@@ -284,15 +284,15 @@ CONTAINS
      DO z=1,3 !dipole directions
        DO ispin=1,dft_control%nspins
 !SL compute trace 
-            ptmp = 0.0_dp
-            CALL cp_fm_trace(psi1_dBerry(i,ispin)%matrix,mo_derivs(z,ispin)%matrix,ptmp)
-         polar_tmp(i,z)=polar_tmp(i,z) + 2*ptmp
+         CALL cp_fm_trace(psi1_dBerry(i,ispin)%matrix,mo_derivs(z,ispin)%matrix,ptmp)
+         polar_tmp(i,z)=polar_tmp(i,z) + ptmp
        END DO
-          polar_tmp(i,z) = polar_tmp(i,z)/(twopi * twopi)
       END DO
      END DO !spin
-   
+
      polar(:,:) = MATMUL (MATMUL (cell%hmat,polar_tmp),TRANSPOSE(cell%hmat)) 
+     polar(:,:) = 2./(twopi*twopi) * polar(:,:)
+
 !SL evtl maxocc instead?
       IF (dft_control%nspins .EQ. 1) THEN
         polar(:,:) = 2.0_dp * polar(:,:)
