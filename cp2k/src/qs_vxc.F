@@ -470,7 +470,7 @@ CONTAINS
                CALL pw_zero(rho_m_rspace(2)%pw)
                CALL pw_zero(rho_m_gspace(2)%pw)
 
-            print *, "HELLO"
+            print *, "HELLO scaling: ", nelec_s_inv
 
                IF (my_just_energy) THEN
                   exc_m = xc_exc_calc(rho_r=rho_r, tau=tau, &
@@ -487,6 +487,7 @@ CONTAINS
                                          virial_xc=virial_xc_tmp)
                END IF
 
+               print *, exc_m
                exc = exc-dft_control%sic_scaling_b*nelec_spin(ispin)*exc_m
 
                ! and take care of the potential only vxc_rho is taken into account
