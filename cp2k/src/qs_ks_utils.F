@@ -796,6 +796,7 @@ CONTAINS
       CASE DEFAULT
          CPABORT("Unknown sic method id")
       END SELECT
+      print *, "Hartree energy: ", ener
       energy%hartree = energy%hartree+full_scaling*ener
 
       ! add scaled forces, restoring the old
@@ -808,11 +809,16 @@ CONTAINS
          ENDDO
       ENDIF
 
+
       IF (.NOT. just_energy) THEN
          CALL pw_pool_create_pw(auxbas_pw_pool, v_sic_rspace%pw, &
                                 use_data=REALDATA3D, in_space=REALSPACE)
          CALL pw_transfer(work_v%pw, v_sic_rspace%pw)
          ! also take into account the scaling (in addition to the volume element)
+
+!FUDO| shouldn't it be the negative of the full_scling?!?
+        print *, 'HARTREE STUFF'
+
          CALL pw_scale(v_sic_rspace%pw, &
                        dft_control%sic_scaling_a*v_sic_rspace%pw%pw_grid%dvol)
       ENDIF
