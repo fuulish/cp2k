@@ -449,8 +449,8 @@ CONTAINS
                                       use_data=REALDATA3D, &
                                       in_space=REALSPACE)
 
-                rho_g(ispin)%pw => rho_m_gspace(1)%pw
-                rho_r(ispin)%pw => rho_m_rspace(1)%pw
+                rho_g(ispin)%pw => rho_m_gspace(ispin)%pw
+                rho_r(ispin)%pw => rho_m_rspace(ispin)%pw
             ENDDO
 
             DO ispin = 1, dft_control%nspins
