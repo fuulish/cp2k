@@ -448,26 +448,29 @@ CONTAINS
                CALL pw_pool_create_pw(xc_pw_pool, rho_m_rspace(ispin)%pw, &
                                       use_data=REALDATA3D, &
                                       in_space=REALSPACE)
+
+                rho_g(ispin)%pw => rho_m_gspace(1)%pw
+                rho_r(ispin)%pw => rho_m_rspace(1)%pw
             ENDDO
 
-            rho_g(1)%pw => rho_m_gspace(1)%pw
-            rho_g(2)%pw => rho_m_gspace(2)%pw
-            rho_r(1)%pw => rho_m_rspace(1)%pw
-            rho_r(2)%pw => rho_m_rspace(2)%pw
-
-            DO ispin = 1, 2
+            DO ispin = 1, dft_control%nspins
                IF (nelec_spin(ispin) .GT. 0.0_dp) THEN
                   nelec_s_inv = 1.0_dp/nelec_spin(ispin)
                ELSE
                   ! does it matter if there are no electrons with this spin (H) ?
                   nelec_s_inv = 0.0_dp
                ENDIF
+
                CALL pw_copy(rho_struct_r(ispin)%pw, rho_m_rspace(1)%pw)
                CALL pw_copy(rho_struct_g(ispin)%pw, rho_m_gspace(1)%pw)
+
                CALL pw_scale(rho_m_rspace(1)%pw, nelec_s_inv)
                CALL pw_scale(rho_m_gspace(1)%pw, nelec_s_inv)
+
                CALL pw_zero(rho_m_rspace(2)%pw)
                CALL pw_zero(rho_m_gspace(2)%pw)
+
+            print *, "HELLO"
 
                IF (my_just_energy) THEN
                   exc_m = xc_exc_calc(rho_r=rho_r, tau=tau, &
@@ -491,7 +494,7 @@ CONTAINS
                   vxc_rho(ispin)%pw%cr3d = vxc_rho(ispin)%pw%cr3d-dft_control%sic_scaling_b* &
                                            my_vxc_rho(1)%pw%cr3d
                   CALL pw_release(my_vxc_rho(1)%pw)
-                  CALL pw_release(my_vxc_rho(2)%pw)
+                  IF ( dft_control%nspins == 2 ) CALL pw_release(my_vxc_rho(2)%pw)
                   DEALLOCATE (my_vxc_rho)
                ENDIF
             ENDDO

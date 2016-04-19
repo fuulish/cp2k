@@ -722,7 +722,9 @@ CONTAINS
          CPABORT("sic and GAPW not yet compatible")
 
       ! OK, right now we like two spins to do sic, could be relaxed for AD
-      CPASSERT(dft_control%nspins == 2)
+      IF ( dft_control%sic_method_id .NE. sic_ad ) THEN
+        CPASSERT(dft_control%nspins == 2)
+      ENDIF
 
       CALL pw_pool_create_pw(auxbas_pw_pool, work_rho%pw, &
                              use_data=COMPLEXDATA1D, &
@@ -743,10 +745,18 @@ CONTAINS
          ! find out how many elecs we have
          CALL get_qs_env(qs_env, mos=mo_array)
          CALL get_mo_set(mo_set=mo_array(1)%mo_set, nelectron=nelec_a)
-         CALL get_mo_set(mo_set=mo_array(2)%mo_set, nelectron=nelec_b)
+
+         IF (dft_control%nspins == 2) THEN
+            CALL get_mo_set(mo_set=mo_array(2)%mo_set, nelectron=nelec_b)
+         ELSE
+            nelec_b = 0
+         ENDIF
+
          nelec = nelec_a+nelec_b
          CALL pw_copy(rho_g(1)%pw, work_rho%pw)
-         CALL pw_axpy(rho_g(2)%pw, work_rho%pw)
+
+         IF (dft_control%nspins == 2) CALL pw_axpy(rho_g(2)%pw, work_rho%pw)
+
          scaling = 1.0_dp/REAL(nelec, KIND=dp)
          CALL pw_scale(work_rho%pw, scaling)
          CALL pw_poisson_solve(poisson_env, work_rho%pw, ener, work_v%pw)
