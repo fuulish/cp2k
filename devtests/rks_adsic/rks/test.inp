@@ -52,6 +52,9 @@
             &XC_FUNCTIONAL
                 &PADE
                 &END PADE
+                #&PBE
+                #    PARAMETRIZATION REVPBE
+                #&END PBE
             &END XC_FUNCTIONAL
         &END XC
         &PRINT
