@@ -59,6 +59,10 @@
             &END E_DENSITY_CUBE
         &END PRINT
     &END DFT
+    &PRINT
+        &FORCES
+        &END FORCES
+    &END PRINT
     &SUBSYS
         &COORD
             H 0 0 0

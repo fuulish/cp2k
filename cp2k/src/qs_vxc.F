@@ -301,7 +301,7 @@ CONTAINS
          END IF
 
 !FU| up to here everythin' is the same for LSD and RKS
-        PRINT *, "HELLO< CURRENT EXC ENERGY", exc
+!        PRINT *, "HELLO< CURRENT EXC ENERGY", exc
 !FU|
 
          ! remove the nlcc densities (keep stuff in original state)
