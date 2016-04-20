@@ -1,0 +1,14 @@
+calculationmode = gs
+
+ExcessCharge = 1
+
+xyzcoordinates = 'h3o-bohr.xyz'
+
+xcfunctional = gga_x_pbe + gga_c_pbe
+
+SICCorrection = sic_adsic
+
+Radius = 10
+Spacing = 0.189
+
+#spincomponents = spin_polarized

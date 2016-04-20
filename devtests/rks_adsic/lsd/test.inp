@@ -1,0 +1,101 @@
+@SET PROJ_NAME SICTest
+
+&GLOBAL
+    PROJECT ${PROJ_NAME}
+    PREFERRED_FFT_LIBRARY FFTW
+    FFTW_PLAN_TYPE MEASURE
+    RUN_TYPE ENERGY_FORCE
+    PRINT_LEVEL LOW
+    WALLTIME 172000
+&END GLOBAL
+
+&FORCE_EVAL
+    &DFT
+        CHARGE 0
+        LSD
+        &SIC
+            SIC_SCALING_B 1.
+            SIC_METHOD AD
+            ORBITAL_SET ALL
+        &END SIC
+        &POISSON
+            POISSON_SOLVER MULTIPOLE
+            PERIODIC NONE
+        &END POISSON
+        BASIS_SET_FILE_NAME GTH_BASIS_SETS
+        POTENTIAL_FILE_NAME GTH_POTENTIALS
+        &MGRID
+            CUTOFF 400
+            NGRIDS 4
+        &END MGRID
+        &SCF
+            SCF_GUESS ATOMIC
+            MAX_SCF 10
+            EPS_SCF 1.0E-6
+            &OT
+                MINIMIZER DIIS
+                PRECONDITIONER FULL_SINGLE_INVERSE
+            &END OT
+            &OUTER_SCF
+                MAX_SCF 100
+                EPS_SCF 1.0E-6
+            &END OUTER_SCF
+            &PRINT
+                &RESTART
+                    ADD_LAST NUMERIC
+                    &EACH
+                        QS_SCF 0
+                    &END EACH
+                &END RESTART
+            &END PRINT
+        &END SCF
+        &XC
+            &XC_FUNCTIONAL
+                &PADE
+                &END PADE
+            &END XC_FUNCTIONAL
+        &END XC
+        &PRINT
+            &E_DENSITY_CUBE
+            &END E_DENSITY_CUBE
+        &END PRINT
+    &END DFT
+    &SUBSYS
+        &COORD
+            H 0 0 0
+            H 0.74 0 0
+        &END COORD
+        &TOPOLOGY
+            &CENTER_COORDINATES
+            &END CENTER_COORDINATES
+        &END TOPOLOGY
+        &CELL
+            ABC [angstrom] 5 5 5
+            PERIODIC NONE
+        &END CELL
+        &KIND H
+            BASIS_SET aug-TZV2P-GTH
+            POTENTIAL GTH-PBE-q1
+        &END KIND
+        &KIND C
+            BASIS_SET aug-TZV2P-GTH
+            POTENTIAL GTH-PBE-q4
+        &END KIND
+        &KIND N
+            BASIS_SET aug-TZV2P-GTH
+            POTENTIAL GTH-PBE-q5
+        &END KIND
+        &KIND P
+            BASIS_SET aug-TZV2P-GTH
+            POTENTIAL GTH-PBE-q5
+        &END KIND
+        &KIND O
+            BASIS_SET aug-TZV2P-GTH
+            POTENTIAL GTH-PBE-q6
+        &END KIND
+        &KIND F
+            BASIS_SET aug-TZV2P-GTH
+            POTENTIAL GTH-PBE-q7
+        &END KIND
+    &END SUBSYS
+&END FORCE_EVAL
