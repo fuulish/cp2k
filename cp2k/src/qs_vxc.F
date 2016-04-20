@@ -440,8 +440,8 @@ CONTAINS
             ! find out how many elecs we have
             CALL get_ks_env(ks_env, nelectron_spin=nelec_spin)
 
-            ALLOCATE (rho_m_rspace(2), rho_m_gspace(2))
-            DO ispin = 1, 2
+            ALLOCATE (rho_m_rspace(dft_control%nspins),rho_m_gspace(dft_control%nspins))
+            DO ispin = 1, dft_control%nspins
                CALL pw_pool_create_pw(xc_pw_pool, rho_m_gspace(ispin)%pw, &
                                       use_data=COMPLEXDATA1D, &
                                       in_space=RECIPROCALSPACE)
@@ -467,8 +467,10 @@ CONTAINS
                CALL pw_scale(rho_m_rspace(1)%pw, nelec_s_inv)
                CALL pw_scale(rho_m_gspace(1)%pw, nelec_s_inv)
 
-               CALL pw_zero(rho_m_rspace(2)%pw)
-               CALL pw_zero(rho_m_gspace(2)%pw)
+               IF ( dft_control%nspins == 2 ) THEN
+                CALL pw_zero(rho_m_rspace(2)%pw)
+                CALL pw_zero(rho_m_gspace(2)%pw)
+               ENDIF
 
             print *, "HELLO scaling: ", nelec_s_inv
 
@@ -500,7 +502,7 @@ CONTAINS
                ENDIF
             ENDDO
 
-            DO ispin = 1, 2
+            DO ispin = 1, dft_control%nspins
                CALL pw_pool_give_back_pw(xc_pw_pool, rho_m_rspace(ispin)%pw)
                CALL pw_pool_give_back_pw(xc_pw_pool, rho_m_gspace(ispin)%pw)
             ENDDO
