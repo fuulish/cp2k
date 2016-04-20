@@ -297,7 +297,12 @@ CONTAINS
                                    pw_pool=xc_pw_pool, &
                                    compute_virial=compute_virial, &
                                    virial_xc=virial%pv_xc)
+
          END IF
+
+!FU| up to here everythin' is the same for LSD and RKS
+        PRINT *, "HELLO< CURRENT EXC ENERGY", exc
+!FU|
 
          ! remove the nlcc densities (keep stuff in original state)
          IF (ASSOCIATED(rho_nlcc)) THEN
@@ -440,8 +445,9 @@ CONTAINS
             ! find out how many elecs we have
             CALL get_ks_env(ks_env, nelectron_spin=nelec_spin)
 
-            ALLOCATE (rho_m_rspace(dft_control%nspins),rho_m_gspace(dft_control%nspins))
-            DO ispin = 1, dft_control%nspins
+            ALLOCATE (rho_m_rspace(2),rho_m_gspace(2))
+            !PRINT *, "THIS SIZE RHO_R", SIZE(rho_r)
+            DO ispin = 1, 2
                CALL pw_pool_create_pw(xc_pw_pool, rho_m_gspace(ispin)%pw, &
                                       use_data=COMPLEXDATA1D, &
                                       in_space=RECIPROCALSPACE)
@@ -464,45 +470,63 @@ CONTAINS
                CALL pw_copy(rho_struct_r(ispin)%pw, rho_m_rspace(1)%pw)
                CALL pw_copy(rho_struct_g(ispin)%pw, rho_m_gspace(1)%pw)
 
+               !CALL pw_copy(rho_struct_r(ispin)%pw, rho_m_rspace(2)%pw)
+               !CALL pw_copy(rho_struct_g(ispin)%pw, rho_m_gspace(2)%pw)
+
+               CALL pw_zero(rho_m_rspace(2)%pw)
+               CALL pw_zero(rho_m_gspace(2)%pw)
+
+               !exc_m = xc_exc_calc(rho_r=rho_m_rspace, tau=tau, &
+               !                    rho_g=rho_m_gspace, xc_section=xc_section, &
+               !                    pw_pool=xc_pw_pool)
+
+               !PRINT *, "HELLO< ANOTHER EXC FOR COMPARISON", exc_m
+
                CALL pw_scale(rho_m_rspace(1)%pw, nelec_s_inv)
                CALL pw_scale(rho_m_gspace(1)%pw, nelec_s_inv)
 
-               IF ( dft_control%nspins == 2 ) THEN
-                CALL pw_zero(rho_m_rspace(2)%pw)
-                CALL pw_zero(rho_m_gspace(2)%pw)
-               ENDIF
+               !exc_m = xc_exc_calc(rho_r=rho_m_rspace, tau=tau, &
+               !                    rho_g=rho_m_gspace, xc_section=xc_section, &
+               !                    pw_pool=xc_pw_pool)
 
-            print *, "HELLO scaling: ", nelec_s_inv
+               !PRINT *, "HELLO< ANOTHER EXC FOR COMPARISON", exc_m
+
+            !print *, "HELLO scaling: ", nelec_s_inv
 
                IF (my_just_energy) THEN
-                  exc_m = xc_exc_calc(rho_r=rho_r, tau=tau, &
-                                      rho_g=rho_g, xc_section=xc_section, &
+                  exc_m = xc_exc_calc(rho_r=rho_m_rspace, tau=tau, &
+                                      rho_g=rho_m_gspace, xc_section=xc_section, &
                                       pw_pool=xc_pw_pool)
                ELSE
                   ! virial untested
                   CPASSERT(.NOT. compute_virial)
-                  CALL xc_vxc_pw_create1(vxc_rho=my_vxc_rho, vxc_tau=my_vxc_tau, rho_r=rho_r, &
-                                         rho_g=rho_g, tau=tau, exc=exc_m, &
+                  CALL xc_vxc_pw_create1(vxc_rho=my_vxc_rho, vxc_tau=my_vxc_tau, rho_r=rho_m_rspace, &
+                                         rho_g=rho_m_gspace, &
+                                         tau=tau, exc=exc_m, &
                                          xc_section=xc_section, &
                                          pw_pool=xc_pw_pool, &
                                          compute_virial=.FALSE., &
                                          virial_xc=virial_xc_tmp)
                END IF
 
-               print *, exc_m
+               !print *, exc_m
                exc = exc-dft_control%sic_scaling_b*nelec_spin(ispin)*exc_m
 
                ! and take care of the potential only vxc_rho is taken into account
                IF (.NOT. my_just_energy) THEN
                   vxc_rho(ispin)%pw%cr3d = vxc_rho(ispin)%pw%cr3d-dft_control%sic_scaling_b* &
                                            my_vxc_rho(1)%pw%cr3d
+
+                  !PRINT *, "DEALLOCATE1"
                   CALL pw_release(my_vxc_rho(1)%pw)
-                  IF ( dft_control%nspins == 2 ) CALL pw_release(my_vxc_rho(2)%pw)
+                  !PRINT *, "DEALLOCATE2"
+                  !IF (dft_control%nspins == 2)
+                  CALL pw_release(my_vxc_rho(2)%pw)
                   DEALLOCATE (my_vxc_rho)
                ENDIF
             ENDDO
 
-            DO ispin = 1, dft_control%nspins
+            DO ispin = 1, 2
                CALL pw_pool_give_back_pw(xc_pw_pool, rho_m_rspace(ispin)%pw)
                CALL pw_pool_give_back_pw(xc_pw_pool, rho_m_gspace(ispin)%pw)
             ENDDO
