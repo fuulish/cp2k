@@ -336,6 +336,8 @@ CONTAINS
        CALL get_qs_env(qs_env=qs_env,dispersion_env=dispersion_env,energy=energy)
        CALL calculate_dispersion_pairpot(qs_env,dispersion_env,energy%dispersion,calc_forces)
 
+       PRINT *, "FU| DISPERSION ME: ", energy%dispersion
+
     END IF
 
     CALL timestop(handle)
