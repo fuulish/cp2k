@@ -315,6 +315,8 @@ CONTAINS
       ! should use pw_integrate
       IF (rho_tot_g%pw_grid%have_g0) ch_dens = REAL(rho_tot_g%cc(1), KIND=dp)
       CALL mp_sum(ch_dens, logger%para_env%group)
+
+      !PRINT *, 'FU| charge density', ch_dens
       !
       ! Get Input Parameters
       !
@@ -356,6 +358,9 @@ CONTAINS
       CALL build_b_vector(bv, cp_ddapc_env%gfunc, cp_ddapc_env%w, &
                           particle_set, radii, rho_tot_g, gcut); bv(:) = bv(:)/Vol
       CALL mp_sum(bv, rho_tot_g%pw_grid%para%group)
+      !PRINT *, "AmI| ", cp_ddapc_env%AmI
+      !PRINT *, "bv|  ", bv
+      !PRINT *, "cv|  ", cv
       c1 = DOT_PRODUCT(cv, MATMUL(cp_ddapc_env%AmI, bv))-ch_dens
       c1 = c1/cp_ddapc_env%c0
       qv(:) = -MATMUL(cp_ddapc_env%AmI, (bv-c1*cv))

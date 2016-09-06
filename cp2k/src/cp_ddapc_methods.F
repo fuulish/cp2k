@@ -89,6 +89,7 @@ CONTAINS
             gfunc(ig, igauss) = EXP(-g2*rc2/4.0_dp)
          END DO
       END DO
+      !PRINT *, "NUMERICAL VALUE of GCUT2: ", gcut2
       DO ig = s_dim, e_dim
          g2 = rho_tot_g%pw_grid%gsq(ig)
          IF (g2 > gcut2) EXIT
@@ -126,6 +127,7 @@ CONTAINS
                                                             iparticle, s_dim
       REAL(KIND=dp)                                      :: arg, g2, gcut2, gvec(3), rvec(3)
       REAL(KIND=dp), DIMENSION(:), POINTER               :: my_bv, my_bvw
+      REAL(KIND=dp)                                      :: myint
 
       CALL timeset(routineN, handle)
       NULLIFY (my_bv, my_bvw)
@@ -144,19 +146,34 @@ CONTAINS
          !
          DO iparticle = 1, SIZE(particle_set)
             rvec = particle_set(iparticle)%r
+
+            !PRINT *, "FU| particle pos: ", rvec
+            !PRINT *, "FU| igmax: ", igmax
+
+            myint = 0.0_dp
             my_bv = 0.0_dp
             DO ig = s_dim, igmax
                gvec = rho_tot_g%pw_grid%g(:, ig)
                arg = DOT_PRODUCT(gvec, rvec)
+               !PRINT *, "FU| arg: ", arg
                phase = CMPLX(COS(arg), -SIN(arg), KIND=dp)
                my_bv(ig) = w(ig)*REAL(CONJG(rho_tot_g%cc(ig))*phase, KIND=dp)
+               !myint = myint + w(ig) * REAL(CONJG(rho_tot_g%cc(ig))*phase, KIND=dp)
+               myint = myint + REAL(phase)
             END DO
+
+            !PRINT *, "FU| n*phase", myint
             DO igauss = 1, SIZE(radii)
                idim = (iparticle-1)*SIZE(radii)+igauss
+                myint = 0.0_dp
                DO ig = s_dim, igmax
                   my_bvw(ig) = my_bv(ig)*gfunc(ig, igauss)
+                  myint = myint + gfunc(ig, igauss)
+                  !PRINT *, "FUTMI| ", gfunc(ig, igauss)
                END DO
-               bv(idim) = accurate_sum(my_bvw)
+               bv(idim) = SUM(my_bvw)
+               !bv(idim) = accurate_sum(my_bvw)
+               !PRINT *, 'FU| bv: ', bv(idim), 'myint: ', myint, radii(igauss)
             END DO
          END DO
          DEALLOCATE (my_bvw)
@@ -206,6 +223,7 @@ CONTAINS
       REAL(KIND=dp)                                      :: g2, gcut2, tmp
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:)           :: my_Am, my_Amw
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:, :, :)     :: gfunc_sq(:, :, :)
+      REAL(KIND=dp)                                      :: myint
 
 !NB precalculate as many things outside of the innermost loop as possible, in particular w(ig)*gfunc(ig,igauus1)*gfunc(ig,igauss2)
 
@@ -219,14 +237,19 @@ CONTAINS
          IF (g2 > gcut2) EXIT
          igmax = ig
       ENDDO
+      !PRINT *, "FU| RADII: ", radii
       IF (igmax .GE. s_dim) THEN
          ALLOCATE (my_Am(s_dim:igmax))
          ALLOCATE (my_Amw(s_dim:igmax))
          ALLOCATE (gfunc_sq(s_dim:igmax, SIZE(radii), SIZE(radii)))
 
+         myint = 0
          DO igauss1 = 1, SIZE(radii)
             DO igauss2 = 1, SIZE(radii)
+               !gfunc_sq(s_dim:igmax, igauss1, igauss2) = gfunc(s_dim:igmax, igauss1)*gfunc(s_dim:igmax, igauss2)
                gfunc_sq(s_dim:igmax, igauss1, igauss2) = w(s_dim:igmax)*gfunc(s_dim:igmax, igauss1)*gfunc(s_dim:igmax, igauss2)
+               myint = accurate_sum(gfunc_sq(s_dim:igmax, igauss1, igauss2))
+               !PRINT *, "FU| igauss 1 2 val: ", igauss1, igauss2, myint
             END DO
          END DO
 
@@ -245,10 +268,11 @@ CONTAINS
                      idim2 = (iparticle2-1)*SIZE(radii)+igauss2
                      my_Amw(s_dim:igmax) = my_Am(s_dim:igmax)*gfunc_sq(s_dim:igmax, igauss1, igauss2)
                      !NB no loss of accuracy in my test cases
-                     !tmp = accurate_sum(my_Amw)
-                     tmp = SUM(my_Amw)
+                     tmp = accurate_sum(my_Amw)
+                     !tmp = SUM(my_Amw)
                      Am(idim2, idim1) = tmp
                      Am(idim1, idim2) = tmp
+                     !PRINT *, "FU| Am", idim1, idim2, tmp
                   END DO
                END DO
             END DO
@@ -608,9 +632,11 @@ CONTAINS
          WRITE (iw, '(T3,A,F15.9)') " Error inverting the A matrix: ", inv_error
       END IF
       c0 = DOT_PRODUCT(cv, MATMUL(AmI, cv))
+      !PRINT *, "FU| Am ", Am
       DEALLOCATE (Am)
       DEALLOCATE (cv)
       GAmI = AmI
+      !PRINT *, "FU| AmI ", AmI
       DEALLOCATE (AmI)
       CALL timestop(handle)
    END SUBROUTINE ddapc_eval_AmI
