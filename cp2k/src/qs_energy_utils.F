@@ -337,6 +337,7 @@ CONTAINS
        CALL calculate_dispersion_pairpot(qs_env,dispersion_env,energy%dispersion,calc_forces)
 
        PRINT *, "FU| DISPERSION ME: ", energy%dispersion
+       !PRINT *, "FU| DISPERSION ME: ", forces%dispersion
 
     END IF
 
